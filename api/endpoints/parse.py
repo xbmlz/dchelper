@@ -21,11 +21,13 @@ async def parse(req: ParseRequest):
     if not url:
         raise HTTPException(status_code=400, detail="No valid URL found in text")
     
-    ydl_opts = {}
+    ydl_opts = {
+        'proxy': 'http://172.17.0.1:7890',
+    }
 
     res = {}
     url_list = []
-    with YoutubeDL() as ydl:
+    with YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
         
         formats = info.get('formats', [])

@@ -1,0 +1,9 @@
+version: "3.3"
+services:
+    dchelper:
+        image: dchelper:latest
+        build: .
+        container_name: dchelper
+        restart: always
+        ports:
+            - "8000:8000"

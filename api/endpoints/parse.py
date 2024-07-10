@@ -1,4 +1,5 @@
 
+import json
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from yt_dlp import YoutubeDL
@@ -22,7 +23,8 @@ async def parse(req: ParseRequest):
         raise HTTPException(status_code=400, detail="No valid URL found in text")
     
     ydl_opts = {
-        'proxy': 'http://172.17.0.1:7890',
+        'proxy': 'http://172.24.64.1:7897',
+        'socket-timeout': 10,
     }
 
     res = {}
@@ -33,23 +35,27 @@ async def parse(req: ParseRequest):
         formats = info.get('formats', [])
         for f in formats:
             if f.get('vcodec') != 'none' and f.get('acodec') != 'none':
-                url_list.append({
-                    'url': f.get('url'),
-                    'ext': f.get('ext'),
-                    'vcodec': f.get('vcodec'),
-                    'acodec': f.get('acodec'),
-                    'format': f.get('format'),
-                    'format_note': f.get('format_note'),
-                    'ext': f.get('ext'),
-                    'fps': f.get('fps'),
-                    'resolution': f.get('resolution')
-                })
+                url_list.append(f)
+        if not url_list:
+            raise HTTPException(status_code=400, detail="No valid video format found")
+        
+        # TODO: add more info to response
         res = {
             'id': info.get('id'),
             'title': info.get('title'),
             'thumbnail': info.get('thumbnail'),
             'description': info.get('description'),
-            'formats': url_list
+            'url': url_list[0].get('url'),
+            'ext': url_list[0].get('ext'),
+            'vcodec': url_list[0].get('vcodec'),
+            'acodec': url_list[0].get('acodec'),
+            'format': url_list[0].get('format'),
+            'format_note': url_list[0].get('format_note'),
+            'ext': url_list[0].get('ext'),
+            'fps': url_list[0].get('fps'),
+            'resolution': url_list[0].get('resolution'),
+            'filesize_approx': url_list[0].get('filesize_approx'),
+            'filesize': url_list[0].get('filesize'),
         }
     
     return {"message": "success", "data": res}

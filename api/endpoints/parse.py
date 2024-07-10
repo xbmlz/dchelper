@@ -8,6 +8,8 @@ from utils.utils import extract_valid_urls
 
 router = APIRouter()
 
+MP_NOT_DOWNLOADABLE = ['youtube']
+
 class ParseRequest(BaseModel):
     text: str
 
@@ -24,13 +26,16 @@ async def parse(req: ParseRequest):
     
     ydl_opts = {
         'proxy': 'http://172.17.0.1:7890',
-        'socket-timeout': 10,
     }
 
     res = {}
     url_list = []
     with YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
+
+        # 写入json文件
+        with open('info.json', 'w', encoding='utf-8') as f:
+            json.dump(info, f, ensure_ascii=False, indent=4)
         
         formats = info.get('formats', [])
         for f in formats:
@@ -45,6 +50,7 @@ async def parse(req: ParseRequest):
             'title': info.get('title'),
             'thumbnail': info.get('thumbnail'),
             'description': info.get('description'),
+            'extractor': info.get('extractor'),
             'url': url_list[0].get('url'),
             'ext': url_list[0].get('ext'),
             'vcodec': url_list[0].get('vcodec'),
@@ -56,6 +62,7 @@ async def parse(req: ParseRequest):
             'resolution': url_list[0].get('resolution'),
             'filesize_approx': url_list[0].get('filesize_approx'),
             'filesize': url_list[0].get('filesize'),
+            'mp_downloadable': info.get('extractor') not in MP_NOT_DOWNLOADABLE
         }
     
     return {"message": "success", "data": res}

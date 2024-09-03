@@ -25,7 +25,7 @@ async def parse(req: ParseRequest):
         raise HTTPException(status_code=400, detail="No valid URL found in text")
     
     ydl_opts = {
-        'proxy': 'http://172.17.0.1:7890',
+        'proxy': 'http://193.112.175.178:7890',
     }
 
     res = {}
